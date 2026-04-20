@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "944501749095",
+    "project_id": "courseworkcloud-af10d",
+    "storage_bucket": "courseworkcloud-af10d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:944501749095:android:be2c6e9afe4903e0e76bc2",
+        "android_client_info": {
+          "package_name": "com.example.coursework"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIPdXYlswKBwV13zjHde0oXXV2yxzh2lk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
