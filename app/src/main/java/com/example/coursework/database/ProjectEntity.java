@@ -3,87 +3,68 @@ package com.example.coursework.database;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-// @Entity đánh dấu đây là một bảng trong SQLite.
-
 @Entity(tableName = "project_table")
 public class ProjectEntity {
 
-    // @PrimaryKey(autoGenerate = true) giúp ID tự động tăng (1, 2, 3...)
     @PrimaryKey(autoGenerate = true)
     private int id;
 
-    // Các cột dữ liệu dựa theo yêu cầu của Coursework
+    private String projectIdCode; // Mới thêm
     private String name;
     private String destination;
-    private String date;
+    private String startDate;     // Mới thêm
+    private String endDate;       // Mới thêm
     private boolean requiresRiskAssessment;
     private String description;
     private double budget;
+    private String owner;         // Mới thêm
+    private String status;        // Mới thêm (Active, Completed, On Hold)
 
-    // Constructor: Hàm khởi tạo để tạo ra một dự án mới
-    public ProjectEntity(String name, String destination, String date, boolean requiresRiskAssessment, String description, double budget) {
+    // Constructor đã được cập nhật
+    public ProjectEntity(String projectIdCode, String name, String destination, String startDate, String endDate, boolean requiresRiskAssessment, String description, double budget, String owner, String status) {
+        this.projectIdCode = projectIdCode;
         this.name = name;
         this.destination = destination;
-        this.date = date;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.requiresRiskAssessment = requiresRiskAssessment;
         this.description = description;
         this.budget = budget;
+        this.owner = owner;
+        this.status = status;
     }
 
-    public int getId() {
-        return id;
-    }
+    // Getters and Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public String getProjectIdCode() { return projectIdCode; }
+    public void setProjectIdCode(String projectIdCode) { this.projectIdCode = projectIdCode; }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getDestination() { return destination; }
+    public void setDestination(String destination) { this.destination = destination; }
 
-    public String getDestination() {
-        return destination;
-    }
+    public String getStartDate() { return startDate; }
+    public void setStartDate(String startDate) { this.startDate = startDate; }
 
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
+    public String getEndDate() { return endDate; }
+    public void setEndDate(String endDate) { this.endDate = endDate; }
 
-    public String getDate() {
-        return date;
-    }
+    public boolean isRequiresRiskAssessment() { return requiresRiskAssessment; }
+    public void setRequiresRiskAssessment(boolean requiresRiskAssessment) { this.requiresRiskAssessment = requiresRiskAssessment; }
 
-    public void setDate(String date) {
-        this.date = date;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public boolean isRequiresRiskAssessment() {
-        return requiresRiskAssessment;
-    }
+    public double getBudget() { return budget; }
+    public void setBudget(double budget) { this.budget = budget; }
 
-    public void setRequiresRiskAssessment(boolean requiresRiskAssessment) {
-        this.requiresRiskAssessment = requiresRiskAssessment;
-    }
+    public String getOwner() { return owner; }
+    public void setOwner(String owner) { this.owner = owner; }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public double getBudget() {
-        return budget;
-    }
-
-    public void setBudget(double budget) {
-        this.budget = budget;
-    }
-
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

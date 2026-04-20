@@ -1,12 +1,16 @@
 package com.example.coursework;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,7 +29,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private EditText etSearch;
     private FloatingActionButton fabCreateNew;
-    private Button btnSyncCloud; // Nút đồng bộ mới
+    private Button btnSyncCloud, btnResetDB; // Thêm nút Reset
     private RecyclerView recyclerView;
 
     private AppDatabase db;
@@ -41,30 +45,36 @@ public class HomeActivity extends AppCompatActivity {
 
         etSearch = findViewById(R.id.etSearch);
         fabCreateNew = findViewById(R.id.fabCreateNew);
-        btnSyncCloud = findViewById(R.id.btnSyncCloud); // Ánh xạ nút
+        btnSyncCloud = findViewById(R.id.btnSyncCloud);
+        btnResetDB = findViewById(R.id.btnResetDB); // Ánh xạ nút Reset
         recyclerView = findViewById(R.id.recyclerViewHome);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Nút dấu + mở form thêm Dự án (MainActivity)
         fabCreateNew.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, MainActivity.class);
             startActivity(intent);
         });
 
-        // Xử lý sự kiện nhấn nút Đồng bộ Firebase
         btnSyncCloud.setOnClickListener(v -> syncToCloud());
 
-        // Xử lý sự kiện Tìm kiếm
+        // XỬ LÝ NÚT RESET DATABASE
+        btnResetDB.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Xác nhận xóa sạch")
+                    .setMessage("Bạn có chắc muốn xóa TOÀN BỘ dữ liệu? Hành động này sẽ xóa sạch cả dự án và chi phí.")
+                    .setPositiveButton("Xóa hết", (dialog, which) -> executeResetDatabase())
+                    .setNegativeButton("Hủy", null)
+                    .show();
+        });
+
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterProjects(s.toString());
             }
-
             @Override
             public void afterTextChanged(Editable s) {}
         });
@@ -79,7 +89,6 @@ public class HomeActivity extends AppCompatActivity {
     private void loadProjects() {
         new Thread(() -> {
             allProjects = db.appDao().getAllProjects();
-
             runOnUiThread(() -> {
                 adapter = new ProjectAdapter(allProjects);
                 recyclerView.setAdapter(adapter);
@@ -89,32 +98,56 @@ public class HomeActivity extends AppCompatActivity {
 
     private void filterProjects(String text) {
         if (allProjects == null || adapter == null) return;
-
         List<ProjectEntity> filteredList = new ArrayList<>();
+        String query = text.toLowerCase().trim();
         for (ProjectEntity project : allProjects) {
-            if (project.getName().toLowerCase().contains(text.toLowerCase())) {
+            if (project.getName().toLowerCase().contains(query) ||
+                    (project.getDescription() != null && project.getDescription().toLowerCase().contains(query))) {
                 filteredList.add(project);
             }
         }
         adapter.updateList(filteredList);
     }
 
-    // --- HÀM MỚI: ĐẨY DỮ LIỆU LÊN FIREBASE CLOUD ---
     private void syncToCloud() {
-        if (allProjects == null || allProjects.isEmpty()) {
-            Toast.makeText(this, "No projects to sync!", Toast.LENGTH_SHORT).show();
+        if (!isNetworkAvailable()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Không có kết nối")
+                    .setMessage("Vui lòng kiểm tra Wifi/3G trước khi đồng bộ lên Cloud.")
+                    .setPositiveButton("OK", null)
+                    .show();
             return;
         }
 
-        // Kết nối tới Database trên Firebase, tạo bảng tên là "projects"
+        if (allProjects == null || allProjects.isEmpty()) {
+            Toast.makeText(this, "Không có dữ liệu để đồng bộ!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         DatabaseReference database = FirebaseDatabase.getInstance("https://courseworkcloud-af10d-default-rtdb.firebaseio.com/").getReference("projects");
-        // Đẩy toàn bộ danh sách dự án lên Cloud
         database.setValue(allProjects)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(HomeActivity.this, "Synced to Cloud Successfully! ☁️", Toast.LENGTH_LONG).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(HomeActivity.this, "Sync Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+                .addOnSuccessListener(aVoid -> Toast.makeText(HomeActivity.this, "Đã đồng bộ lên Cloud! ☁️", Toast.LENGTH_LONG).show())
+                .addOnFailureListener(e -> Toast.makeText(HomeActivity.this, "Lỗi đồng bộ: " + e.getMessage(), Toast.LENGTH_LONG).show());
+    }
+
+    // HÀM THỰC THI RESET DATABASE
+    private void executeResetDatabase() {
+        new Thread(() -> {
+            db.clearAllTables(); // Xóa sạch dữ liệu trong SQLite
+            if (allProjects != null) allProjects.clear();
+            runOnUiThread(() -> {
+                if (adapter != null) adapter.updateList(new ArrayList<>());
+                Toast.makeText(HomeActivity.this, "Đã Reset Database thành công!", Toast.LENGTH_SHORT).show();
+            });
+        }).start();
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        }
+        return false;
     }
 }

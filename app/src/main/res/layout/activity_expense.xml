@@ -1,84 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#F5F5F5">
-
-    <TextView
-        android:id="@+id/tvProjectTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Expenses for Project"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"
-        android:textColor="#102A43"/>
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@android:color/white"
-        android:padding="16dp"
-        android:elevation="4dp"
-        android:layout_marginBottom="16dp">
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvProjectName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Expense"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/etExpenseDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Date (dd/mm/yyyy) *" />
 
         <EditText
             android:id="@+id/etExpenseType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Type (e.g., Travel, Food) *"
-            android:inputType="text"
-            android:layout_marginBottom="8dp"/>
+            android:hint="Type (Travel, Food...) *" />
 
         <EditText
             android:id="@+id/etExpenseAmount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Amount ($) *"
-            android:inputType="numberDecimal"
-            android:layout_marginBottom="8dp"/>
+            android:hint="Amount *"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/etExpenseCurrency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Currency (USD, VND...)" />
+
+        <EditText
+            android:id="@+id/etPaymentMethod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Payment Method (Cash, Card...)" />
 
         <EditText
             android:id="@+id/etExpenseTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Time (e.g., 10:30 AM)"
-            android:inputType="text"
-            android:layout_marginBottom="8dp"/>
+            android:hint="Time (hh:mm)" />
+
+        <EditText
+            android:id="@+id/etExpenseClaimant"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Claimant Name" />
+
+        <EditText
+            android:id="@+id/etPaymentStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Payment Status (Paid/Unpaid)" />
 
         <EditText
             android:id="@+id/etExpenseComment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Comments (Optional)"
-            android:inputType="text"
-            android:layout_marginBottom="12dp"/>
+            android:hint="Comments"
+            android:lines="3"
+            android:gravity="top" />
 
         <Button
-            android:id="@+id/btnAddExpense"
+            android:id="@+id/btnSaveExpense"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ADD EXPENSE"
-            android:backgroundTint="#007AFF"/>
+            android:text="Save Expense"
+            android:layout_marginTop="16dp" />
+
     </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Recent Expenses"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp"
-        android:textColor="#334E68"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewExpenses"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingBottom="16dp"/>
-
-</LinearLayout>
+</ScrollView>

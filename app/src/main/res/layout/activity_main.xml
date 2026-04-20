@@ -1,94 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:background="#F5F5F5">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@android:color/white"
-        android:padding="20dp"
-        android:elevation="4dp">
+        android:orientation="vertical">
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Create New Project"
+            android:text="Project Management"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="#333333"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/etProjectIdCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Project ID/Code *" />
 
         <EditText
             android:id="@+id/etProjectName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Project Name (*)"
-            android:inputType="textPersonName"
-            android:layout_marginBottom="12dp"/>
+            android:hint="Project Name *" />
 
         <EditText
             android:id="@+id/etDestination"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Destination (*)"
-            android:inputType="text"
-            android:layout_marginBottom="12dp"/>
+            android:hint="Destination *" />
 
         <EditText
-            android:id="@+id/etDate"
+            android:id="@+id/etStartDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Date (e.g., 20/10/2026) (*)"
-            android:inputType="date"
-            android:layout_marginBottom="12dp"/>
+            android:hint="Start Date (dd/mm/yyyy) *" />
+
+        <EditText
+            android:id="@+id/etEndDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="End Date (dd/mm/yyyy) *" />
 
         <EditText
             android:id="@+id/etBudget"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Budget ($) (*)"
-            android:inputType="numberDecimal"
-            android:layout_marginBottom="16dp"/>
+            android:hint="Budget ($) *"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/etOwner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Project Owner *" />
+
+        <EditText
+            android:id="@+id/etStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Status (Active/Completed/On Hold) *" />
+
+        <EditText
+            android:id="@+id/etDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Project Description *"
+            android:gravity="top"
+            android:lines="3" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchRisk"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Requires Risk Assessment?"
-            android:textSize="16sp"
-            android:layout_marginBottom="12dp"/>
-
-        <EditText
-            android:id="@+id/etDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Description (Optional)"
-            android:inputType="textMultiLine"
-            android:lines="3"
-            android:gravity="top|start"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginTop="8dp" />
 
         <Button
             android:id="@+id/btnSaveProject"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="SAVE PROJECT"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:cornerRadius="8dp"/>
+            android:layout_height="wrap_content"
+            android:text="Save Project"
+            android:layout_marginTop="16dp" />
 
         <Button
             android:id="@+id/btnViewProjects"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="VIEW ALL PROJECTS"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_marginTop="8dp"/>
+            android:text="View All Projects"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
     </LinearLayout>
 </ScrollView>

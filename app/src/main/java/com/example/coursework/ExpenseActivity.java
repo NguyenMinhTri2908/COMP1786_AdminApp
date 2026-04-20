@@ -5,25 +5,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.example.coursework.adapter.ExpenseAdapter;
 import com.example.coursework.database.AppDatabase;
 import com.example.coursework.database.ExpenseEntity;
 
-import java.util.List;
-
 public class ExpenseActivity extends AppCompatActivity {
 
-    private TextView tvProjectTitle;
-    private EditText etType, etAmount, etTime, etComment;
-    private Button btnAddExpense;
-    private RecyclerView recyclerView;
-
-    private AppDatabase db;
     private int projectId = -1;
+    private String projectName = "";
+
+    private TextView tvProjectName;
+    private EditText etDate, etType, etAmount, etCurrency, etPaymentMethod, etTime, etComment, etClaimant, etPaymentStatus;
+    private Button btnSaveExpense;
+    private AppDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,77 +27,73 @@ public class ExpenseActivity extends AppCompatActivity {
 
         db = AppDatabase.getInstance(this);
 
-        // Nhận ID từ ProjectAdapter truyền qua
-        projectId = getIntent().getIntExtra("PROJECT_ID", -1);
-        String projectName = getIntent().getStringExtra("PROJECT_NAME");
+        // Nhận dữ liệu dự án từ Intent được truyền qua từ ProjectAdapter
+        if (getIntent().hasExtra("PROJECT_ID")) {
+            projectId = getIntent().getIntExtra("PROJECT_ID", -1);
+            projectName = getIntent().getStringExtra("PROJECT_NAME");
+        }
 
-        tvProjectTitle = findViewById(R.id.tvProjectTitle);
+        // Ánh xạ giao diện
+        tvProjectName = findViewById(R.id.tvProjectName);
+        etDate = findViewById(R.id.etExpenseDate);
         etType = findViewById(R.id.etExpenseType);
         etAmount = findViewById(R.id.etExpenseAmount);
+        etCurrency = findViewById(R.id.etExpenseCurrency);
+        etPaymentMethod = findViewById(R.id.etPaymentMethod);
         etTime = findViewById(R.id.etExpenseTime);
         etComment = findViewById(R.id.etExpenseComment);
-        btnAddExpense = findViewById(R.id.btnAddExpense);
-        recyclerView = findViewById(R.id.recyclerViewExpenses);
+        etClaimant = findViewById(R.id.etExpenseClaimant);
+        etPaymentStatus = findViewById(R.id.etPaymentStatus);
+        btnSaveExpense = findViewById(R.id.btnSaveExpense);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        tvProjectName.setText("Add Expense for: " + projectName);
 
-        if (projectName != null) {
-            tvProjectTitle.setText("Expenses for: " + projectName);
-        }
-
-        if (projectId == -1) {
-            Toast.makeText(this, "Error: Invalid Project", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-        loadExpenses();
-
-        btnAddExpense.setOnClickListener(v -> saveExpense());
+        btnSaveExpense.setOnClickListener(v -> saveExpense());
     }
 
     private void saveExpense() {
+        String date = etDate.getText().toString().trim();
         String type = etType.getText().toString().trim();
         String amountStr = etAmount.getText().toString().trim();
+        String currency = etCurrency.getText().toString().trim();
+        String paymentMethod = etPaymentMethod.getText().toString().trim();
         String time = etTime.getText().toString().trim();
         String comment = etComment.getText().toString().trim();
+        String claimant = etClaimant.getText().toString().trim();
+        String paymentStatus = etPaymentStatus.getText().toString().trim();
 
-        if (type.isEmpty() || amountStr.isEmpty()) {
-            Toast.makeText(this, "Please fill required fields", Toast.LENGTH_SHORT).show();
+        // Kiểm tra các trường bắt buộc
+        if (type.isEmpty() || amountStr.isEmpty() || date.isEmpty()) {
+            Toast.makeText(this, "Please fill required fields (Date, Type, Amount)", Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
             double amount = Double.parseDouble(amountStr);
-            new Thread(() -> {
-                ExpenseEntity expense = new ExpenseEntity(projectId, type, amount, time, comment);
-                db.appDao().insertExpense(expense);
 
-                runOnUiThread(() -> {
-                    Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
-                    clearFields();
-                    loadExpenses();
-                });
-            }).start();
+            // Xác nhận trước khi lưu (Confirmation)
+            new AlertDialog.Builder(this)
+                    .setTitle("Confirm Expense")
+                    .setMessage("Add " + type + " expense of $" + amount + "?")
+                    .setPositiveButton("Confirm", (dialog, which) -> {
+                        new Thread(() -> {
+                            // GỌI ĐÚNG CONSTRUCTOR 10 THAM SỐ ĐỂ HẾT LỖI
+                            ExpenseEntity expense = new ExpenseEntity(
+                                    projectId, date, type, amount, currency, paymentMethod, time, comment, claimant, paymentStatus
+                            );
+                            db.appDao().insertExpense(expense);
+
+                            runOnUiThread(() -> {
+                                Toast.makeText(ExpenseActivity.this, "Expense Added Successfully!", Toast.LENGTH_SHORT).show();
+                                finish(); // Đóng Activity và quay lại màn hình trước
+                            });
+                        }).start();
+                    })
+                    .setNegativeButton("Edit", null)
+                    .show();
+
         } catch (NumberFormatException e) {
-            etAmount.setError("Invalid number");
+            etAmount.setError("Invalid amount format");
         }
-    }
-
-    private void loadExpenses() {
-        new Thread(() -> {
-            List<ExpenseEntity> expenses = db.appDao().getExpensesForProject(projectId);
-            runOnUiThread(() -> {
-                ExpenseAdapter adapter = new ExpenseAdapter(expenses);
-                recyclerView.setAdapter(adapter);
-            });
-        }).start();
-    }
-
-    private void clearFields() {
-        etType.setText("");
-        etAmount.setText("");
-        etTime.setText("");
-        etComment.setText("");
     }
 }

@@ -1,13 +1,18 @@
 package com.example.coursework.adapter;
 
-
+import android.app.Activity;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.coursework.MainActivity;
 import com.example.coursework.R;
+import com.example.coursework.database.AppDatabase;
 import com.example.coursework.database.ProjectEntity;
 import java.util.List;
 
@@ -32,14 +37,44 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
         ProjectEntity project = projectList.get(position);
         holder.tvName.setText(project.getName());
         holder.tvDestination.setText("Destination: " + project.getDestination());
-        holder.tvDate.setText("Date: " + project.getDate());
+        holder.tvDate.setText("Start Date: " + project.getStartDate()); // Sửa lại thành Start Date
         holder.tvBudget.setText("Budget: $" + project.getBudget());
 
+        // Chuyển sang màn hình Expense khi bấm vào toàn bộ item
         holder.itemView.setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(v.getContext(), com.example.coursework.ExpenseActivity.class);
+            Intent intent = new Intent(v.getContext(), com.example.coursework.ExpenseActivity.class);
             intent.putExtra("PROJECT_ID", project.getId());
             intent.putExtra("PROJECT_NAME", project.getName());
             v.getContext().startActivity(intent);
+        });
+
+        // 1. CHỨC NĂNG SỬA (EDIT)
+        holder.btnEdit.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), MainActivity.class);
+            intent.putExtra("PROJECT_ID", project.getId());
+            intent.putExtra("PROJECT_NAME", project.getName());
+            intent.putExtra("PROJECT_DESTINATION", project.getDestination());
+            intent.putExtra("PROJECT_BUDGET", project.getBudget());
+            v.getContext().startActivity(intent);
+        });
+
+        // 2. CHỨC NĂNG XÓA (DELETE)
+        holder.btnDelete.setOnClickListener(v -> {
+            new AlertDialog.Builder(v.getContext())
+                    .setTitle("Delete Project")
+                    .setMessage("Are you sure you want to delete this project? All related expenses will also be deleted.")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        new Thread(() -> {
+                            AppDatabase.getInstance(v.getContext()).appDao().deleteProject(project);
+                            ((Activity) v.getContext()).runOnUiThread(() -> {
+                                projectList.remove(position);
+                                notifyItemRemoved(position);
+                                notifyItemRangeChanged(position, projectList.size());
+                            });
+                        }).start();
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
         });
     }
 
@@ -50,6 +85,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
 
     public static class ProjectViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvDestination, tvDate, tvBudget;
+        Button btnEdit, btnDelete; // Đã thêm 2 nút này
 
         public ProjectViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -57,10 +93,15 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
             tvDestination = itemView.findViewById(R.id.tvItemDestination);
             tvDate = itemView.findViewById(R.id.tvItemDate);
             tvBudget = itemView.findViewById(R.id.tvItemBudget);
+
+            // LƯU Ý: BẠN CẦN THÊM 2 NÚT NÀY VÀO item_project.xml
+            btnEdit = itemView.findViewById(R.id.btnEdit);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
+
     public void updateList(List<ProjectEntity> filteredList) {
         this.projectList = filteredList;
-        notifyDataSetChanged(); // Báo cho giao diện biết dữ liệu đã thay đổi để vẽ lại
+        notifyDataSetChanged();
     }
 }
