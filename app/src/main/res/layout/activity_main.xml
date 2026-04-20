@@ -73,6 +73,17 @@
             android:hint="Project Description *"
             android:gravity="top"
             android:lines="3" />
+        <EditText
+            android:id="@+id/etSpecialRequirements"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Special Requirements (Optional)" />
+
+        <EditText
+            android:id="@+id/etClientInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Client/Department Information (Optional)" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchRisk"
@@ -94,6 +105,7 @@
             android:layout_height="wrap_content"
             android:text="View All Projects"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
 
     </LinearLayout>
 </ScrollView>

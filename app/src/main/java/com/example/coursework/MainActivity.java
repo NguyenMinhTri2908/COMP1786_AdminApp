@@ -13,15 +13,11 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Đã thêm các trường mới vào khai báo
-    private EditText etProjectIdCode, etProjectName, etDestination;
-    private EditText etStartDate, etEndDate, etBudget, etDescription;
-    private EditText etOwner, etStatus;
+    private EditText etProjectIdCode, etProjectName, etDestination, etStartDate, etEndDate;
+    private EditText etBudget, etDescription, etOwner, etStatus, etSpecial, etClient;
     private SwitchMaterial switchRisk;
     private Button btnSaveProject, btnViewProjects;
     private AppDatabase db;
-
-    // Biến để lưu ID nếu đang ở chế độ Sửa dự án
     private int currentProjectId = -1;
 
     @Override
@@ -31,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
         db = AppDatabase.getInstance(this);
 
-        // Ánh xạ giao diện (BẠN CẦN TẠO CÁC ID NÀY TRONG activity_main.xml)
+        // Ánh xạ toàn bộ 11 ô nhập liệu
         etProjectIdCode = findViewById(R.id.etProjectIdCode);
         etProjectName = findViewById(R.id.etProjectName);
         etDestination = findViewById(R.id.etDestination);
@@ -41,64 +37,69 @@ public class MainActivity extends AppCompatActivity {
         etDescription = findViewById(R.id.etDescription);
         etOwner = findViewById(R.id.etOwner);
         etStatus = findViewById(R.id.etStatus);
+        etSpecial = findViewById(R.id.etSpecialRequirements); // Mới
+        etClient = findViewById(R.id.etClientInfo);           // Mới
+
         switchRisk = findViewById(R.id.switchRisk);
         btnSaveProject = findViewById(R.id.btnSaveProject);
         btnViewProjects = findViewById(R.id.btnViewProjects);
 
-        // Kiểm tra xem có phải đang ở chế độ CHỈNH SỬA không
+        // Load dữ liệu nếu là chế độ Sửa (Edit)
         if (getIntent().hasExtra("PROJECT_ID")) {
             currentProjectId = getIntent().getIntExtra("PROJECT_ID", -1);
+            etProjectIdCode.setText(getIntent().getStringExtra("PROJECT_CODE"));
             etProjectName.setText(getIntent().getStringExtra("PROJECT_NAME"));
             etDestination.setText(getIntent().getStringExtra("PROJECT_DESTINATION"));
+            etStartDate.setText(getIntent().getStringExtra("PROJECT_START"));
+            etEndDate.setText(getIntent().getStringExtra("PROJECT_END"));
             etBudget.setText(String.valueOf(getIntent().getDoubleExtra("PROJECT_BUDGET", 0)));
-            // Điền tiếp các trường khác nếu cần thiết ở đây...
+            etOwner.setText(getIntent().getStringExtra("PROJECT_OWNER"));
+            etStatus.setText(getIntent().getStringExtra("PROJECT_STATUS"));
+            etDescription.setText(getIntent().getStringExtra("PROJECT_DESC"));
+            etSpecial.setText(getIntent().getStringExtra("PROJECT_SPECIAL"));
+            etClient.setText(getIntent().getStringExtra("PROJECT_CLIENT"));
+            switchRisk.setChecked(getIntent().getBooleanExtra("PROJECT_RISK", false));
 
             btnSaveProject.setText("Update Project");
         }
 
         btnSaveProject.setOnClickListener(v -> handleSaveOrUpdate());
-
-        btnViewProjects.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-            startActivity(intent);
-        });
+        btnViewProjects.setOnClickListener(v -> finish());
     }
 
     private void handleSaveOrUpdate() {
-        String idCode = etProjectIdCode != null ? etProjectIdCode.getText().toString().trim() : "";
+        String idCode = etProjectIdCode.getText().toString().trim();
         String name = etProjectName.getText().toString().trim();
-        String destination = etDestination.getText().toString().trim();
-        String startDate = etStartDate != null ? etStartDate.getText().toString().trim() : "";
-        String endDate = etEndDate != null ? etEndDate.getText().toString().trim() : "";
+        String dest = etDestination.getText().toString().trim();
         String budgetStr = etBudget.getText().toString().trim();
-        String description = etDescription.getText().toString().trim();
-        String owner = etOwner != null ? etOwner.getText().toString().trim() : "";
-        String status = etStatus != null ? etStatus.getText().toString().trim() : "Active";
-        boolean requiresRisk = switchRisk.isChecked();
 
-        // Validation bắt buộc
-        if (name.isEmpty() || destination.isEmpty() || budgetStr.isEmpty()) {
-            Toast.makeText(this, "Please fill in all required (*) fields", Toast.LENGTH_LONG).show();
+        if (name.isEmpty() || dest.isEmpty() || budgetStr.isEmpty()) {
+            Toast.makeText(this, "Please fill in required (*) fields", Toast.LENGTH_LONG).show();
             return;
         }
 
         try {
             double budget = Double.parseDouble(budgetStr);
 
-            // TẠO DIALOG XÁC NHẬN (CONFIRMATION)
-            String confirmMessage = "Name: " + name + "\nDestination: " + destination + "\nBudget: $" + budget;
+            // Lấy thêm dữ liệu từ 2 ô mới
+            String special = etSpecial.getText().toString().trim();
+            String client = etClient.getText().toString().trim();
+
+            // DIALOG XÁC NHẬN CHI TIẾT (Yêu cầu Phần a)
+            String confirmMessage = "Name: " + name + "\nBudget: $" + budget +
+                    "\nSpecial Req: " + (special.isEmpty() ? "None" : special);
 
             new AlertDialog.Builder(this)
                     .setTitle("Confirm Project Details")
                     .setMessage(confirmMessage)
                     .setPositiveButton("Confirm", (dialog, which) -> {
-                        // Nếu bấm Confirm thì lưu vào Database
-                        saveToDatabase(idCode, name, destination, startDate, endDate, requiresRisk, description, budget, owner, status);
+                        saveToDatabase(idCode, name, dest, etStartDate.getText().toString(),
+                                etEndDate.getText().toString(), switchRisk.isChecked(),
+                                etDescription.getText().toString(), budget,
+                                etOwner.getText().toString(), etStatus.getText().toString(),
+                                special, client);
                     })
-                    .setNegativeButton("Edit", (dialog, which) -> {
-                        // Bấm Edit thì đóng Dialog để sửa tiếp
-                        dialog.dismiss();
-                    })
+                    .setNegativeButton("Edit", null)
                     .show();
 
         } catch (NumberFormatException e) {
@@ -106,42 +107,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void saveToDatabase(String idCode, String name, String dest, String start, String end, boolean risk, String desc, double budget, String owner, String status) {
+    private void saveToDatabase(String idCode, String name, String dest, String start, String end,
+                                boolean risk, String desc, double budget, String owner, String status,
+                                String special, String client) {
         new Thread(() -> {
-            ProjectEntity project = new ProjectEntity(idCode, name, dest, start, end, risk, desc, budget, owner, status);
+            // Truyền đủ 12 tham số vào ProjectEntity
+            ProjectEntity project = new ProjectEntity(idCode, name, dest, start, end, risk, desc, budget, owner, status, special, client);
 
-            if (currentProjectId == -1) {
-                // Thêm mới
-                long insertedId = db.appDao().insertProject(project);
-                runOnUiThread(() -> {
-                    if (insertedId > 0) {
-                        Toast.makeText(MainActivity.this, "Project Saved Successfully!", Toast.LENGTH_SHORT).show();
-                        clearInputs();
-                    }
-                });
-            } else {
-                // Cập nhật (Sửa)
+            if (currentProjectId != -1) {
                 project.setId(currentProjectId);
                 db.appDao().updateProject(project);
-                runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, "Project Updated Successfully!", Toast.LENGTH_SHORT).show();
-                    finish(); // Đóng Activity và quay lại màn hình danh sách
-                });
+            } else {
+                db.appDao().insertProject(project);
             }
-        }).start();
-    }
 
-    private void clearInputs() {
-        if(etProjectIdCode != null) etProjectIdCode.setText("");
-        etProjectName.setText("");
-        etDestination.setText("");
-        if(etStartDate != null) etStartDate.setText("");
-        if(etEndDate != null) etEndDate.setText("");
-        etBudget.setText("");
-        etDescription.setText("");
-        if(etOwner != null) etOwner.setText("");
-        if(etStatus != null) etStatus.setText("");
-        switchRisk.setChecked(false);
-        etProjectName.requestFocus();
+            runOnUiThread(() -> {
+                Toast.makeText(MainActivity.this, "Success!", Toast.LENGTH_SHORT).show();
+                finish();
+            });
+        }).start();
     }
 }
