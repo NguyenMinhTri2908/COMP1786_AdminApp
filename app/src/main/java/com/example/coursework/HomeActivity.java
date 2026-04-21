@@ -111,33 +111,40 @@ public class HomeActivity extends AppCompatActivity {
 
     private void syncToCloud() {
         if (!isNetworkAvailable()) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Không có kết nối")
-                    .setMessage("Vui lòng kiểm tra Wifi/3G trước khi đồng bộ lên Cloud.")
-                    .setPositiveButton("OK", null)
-                    .show();
+            // Hiện thông báo yêu cầu kiểm tra mạng (Yêu cầu Part e)
+            new AlertDialog.Builder(this).setTitle("Connection error").setMessage("Please turn on Wifi/3G.").show();
             return;
         }
 
-        if (allProjects == null || allProjects.isEmpty()) {
-            Toast.makeText(this, "Không có dữ liệu để đồng bộ!", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        DatabaseReference database = FirebaseDatabase.getInstance("https://courseworkcloud-af10d-default-rtdb.firebaseio.com/")
+                .getReference("projects");
 
-        DatabaseReference database = FirebaseDatabase.getInstance("https://courseworkcloud-af10d-default-rtdb.firebaseio.com/").getReference("projects");
-        database.setValue(allProjects)
-                .addOnSuccessListener(aVoid -> Toast.makeText(HomeActivity.this, "Đã đồng bộ lên Cloud! ☁️", Toast.LENGTH_LONG).show())
-                .addOnFailureListener(e -> Toast.makeText(HomeActivity.this, "Lỗi đồng bộ: " + e.getMessage(), Toast.LENGTH_LONG).show());
+        // BƯỚC 1: XÓA SẠCH CLOUD TRƯỚC
+        database.removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                // BƯỚC 2: NẾU MÁY CÓ DỮ LIỆU THÌ ĐẨY LÊN
+                if (allProjects != null && !allProjects.isEmpty()) {
+                    database.setValue(allProjects);
+                }
+                Toast.makeText(this, "Fully synchronized !", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     // HÀM THỰC THI RESET DATABASE
     private void executeResetDatabase() {
         new Thread(() -> {
-            db.clearAllTables(); // Xóa sạch dữ liệu trong SQLite
+            // 1. Xóa sạch SQLite
+            db.clearAllTables();
             if (allProjects != null) allProjects.clear();
+
             runOnUiThread(() -> {
                 if (adapter != null) adapter.updateList(new ArrayList<>());
-                Toast.makeText(HomeActivity.this, "Đã Reset Database thành công!", Toast.LENGTH_SHORT).show();
+
+                // 2. THAY ĐỔI THÔNG BÁO Ở ĐÂY
+                Toast.makeText(HomeActivity.this,
+                        "The device has been clean. Please click 'Sync Cloud' to wipe all data on the Cloud!",
+                        Toast.LENGTH_LONG).show();
             });
         }).start();
     }

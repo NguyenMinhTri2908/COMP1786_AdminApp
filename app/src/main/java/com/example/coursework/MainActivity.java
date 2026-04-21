@@ -215,8 +215,10 @@ public class MainActivity extends AppCompatActivity {
             }
 
             runOnUiThread(() -> {
-                Toast.makeText(MainActivity.this, "Success!", Toast.LENGTH_SHORT).show();
-                finish(); // Quay lại màn hình danh sách sau khi lưu
+                Toast.makeText(MainActivity.this,
+                        "Lưu thành công! Đừng quên bấm 'Sync Cloud' để cập nhật lên đám mây.",
+                        Toast.LENGTH_LONG).show();
+                finish();
             });
         }).start();
 

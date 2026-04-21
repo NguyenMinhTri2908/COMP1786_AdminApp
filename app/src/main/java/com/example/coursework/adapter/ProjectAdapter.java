@@ -68,7 +68,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
             v.getContext().startActivity(intent);
         });
 
-        // 2. TỐI ƯU LOGIC DELETE: Chống văng app tuyệt đối
+        //  DELETE:
         holder.btnDelete.setOnClickListener(v -> {
             new AlertDialog.Builder(v.getContext())
                     .setTitle("Delete Project")
@@ -80,18 +80,21 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
                         // Kiểm tra an toàn: nếu item không còn tồn tại trong list thì thoát
                         if (currentPos == RecyclerView.NO_POSITION || currentPos >= projectList.size()) return;
 
+                        // Trong ProjectAdapter.java -> btnDelete.setOnClickListener
                         new Thread(() -> {
-                            // Xóa trong Database
+                            // 1. Xóa trong SQLite (Máy)
                             AppDatabase.getInstance(v.getContext()).appDao().deleteProject(project);
 
-                            // Cập nhật UI bằng Handler (An toàn hơn runOnUiThread trong Adapter)
                             new Handler(Looper.getMainLooper()).post(() -> {
                                 if (currentPos < projectList.size()) {
                                     projectList.remove(currentPos);
                                     notifyItemRemoved(currentPos);
-                                    // Báo cho list biết các mục còn lại đã thay đổi vị trí
                                     notifyItemRangeChanged(currentPos, projectList.size());
-                                    Toast.makeText(v.getContext(), "Deleted successfully", Toast.LENGTH_SHORT).show();
+
+                                    // 2. THAY ĐỔI THÔNG BÁO Ở ĐÂY
+                                    Toast.makeText(v.getContext(),
+                                            "The device has been  clean. Please click 'Sync Cloud' to wipe all data on the Cloud!!",
+                                            Toast.LENGTH_LONG).show();
                                 }
                             });
                         }).start();
