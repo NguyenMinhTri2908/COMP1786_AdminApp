@@ -1,5 +1,6 @@
 package com.example.coursework;
 
+import com.example.coursework.database.ExpenseEntity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -118,25 +119,41 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void syncToCloud() {
+        // 1. Kiểm tra mạng
         if (!isNetworkAvailable()) {
-            // Hiện thông báo yêu cầu kiểm tra mạng (Yêu cầu Part e)
-            new AlertDialog.Builder(this).setTitle("Connection error").setMessage("Please turn on Wifi/3G.").show();
+            new AlertDialog.Builder(this)
+                    .setTitle("Connection error")
+                    .setMessage("Please turn on Wifi/3G to sync data.")
+                    .show();
             return;
         }
 
-        DatabaseReference database = FirebaseDatabase.getInstance("https://courseworkcloud-af10d-default-rtdb.firebaseio.com/")
-                .getReference("projects");
+        // 2. Hiện thông báo đang xử lý để người dùng chờ
+        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
+        progressDialog.setMessage("Syncing Projects & Expenses to Cloud...");
+        progressDialog.show();
 
-        // BƯỚC 1: XÓA SẠCH CLOUD TRƯỚC
-        database.removeValue().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                // BƯỚC 2: NẾU MÁY CÓ DỮ LIỆU THÌ ĐẨY LÊN
-                if (allProjects != null && !allProjects.isEmpty()) {
-                    database.setValue(allProjects);
-                }
-                Toast.makeText(this, "Fully synchronized !", Toast.LENGTH_SHORT).show();
-            }
-        });
+        DatabaseReference dbRef = FirebaseDatabase.getInstance("https://courseworkcloud-af10d-default-rtdb.firebaseio.com/").getReference();
+
+        new Thread(() -> {
+            // Lấy dữ liệu từ SQLite
+            List<ProjectEntity> projects = db.appDao().getAllProjects();
+            List<ExpenseEntity> expenses = db.appDao().getAllExpenses(); // Lệnh mới thêm ở Bước 1
+
+            // Đẩy lên Firebase vào 2 mục riêng biệt
+            // Cách làm này tương tự như cách bạn đẩy Project, chỉ là thêm 1 dòng cho Expense
+            dbRef.child("projects").setValue(projects);
+            dbRef.child("expenses").setValue(expenses).addOnCompleteListener(task -> {
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Full Cloud Sync Complete!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Sync failed. Try again.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        }).start();
     }
 
     // HÀM THỰC THI RESET DATABASE
@@ -149,10 +166,11 @@ public class HomeActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 if (adapter != null) adapter.updateList(new ArrayList<>());
 
-                // 2. THAY ĐỔI THÔNG BÁO Ở ĐÂY
-                Toast.makeText(HomeActivity.this,
-                        "The device has been clean. Please click 'Sync Cloud' to wipe all data on the Cloud!",
-                        Toast.LENGTH_LONG).show();
+                // 2. Xóa sạch cả Project và Expense trên Cloud để đồng bộ
+                DatabaseReference dbRef = FirebaseDatabase.getInstance("https://courseworkcloud-af10d-default-rtdb.firebaseio.com/").getReference();
+                dbRef.removeValue(); // Xóa sạch toàn bộ Node gốc
+
+                Toast.makeText(HomeActivity.this, "Device and Cloud cleared successfully!", Toast.LENGTH_LONG).show();
             });
         }).start();
     }

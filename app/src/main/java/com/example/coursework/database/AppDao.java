@@ -38,4 +38,7 @@ public interface AppDao {
 
     @Query("SELECT * FROM expense_table WHERE projectId = :projId ORDER BY expenseId DESC")
     List<ExpenseEntity> getExpensesForProject(int projId);
+
+    @Query("SELECT * FROM expense_table")
+    List<ExpenseEntity> getAllExpenses();
 }
