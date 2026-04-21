@@ -33,18 +33,20 @@
             android:id="@+id/etDestination"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Destination *" />
+            android:hint="Destination " />
 
         <EditText
             android:id="@+id/etStartDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:focusable="false"
             android:hint="Start Date (dd/mm/yyyy) *" />
 
         <EditText
             android:id="@+id/etEndDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:focusable="false"
             android:hint="End Date (dd/mm/yyyy) *" />
 
         <EditText
@@ -60,11 +62,11 @@
             android:layout_height="wrap_content"
             android:hint="Project Owner *" />
 
-        <EditText
-            android:id="@+id/etStatus"
+        <Spinner
+            android:id="@+id/spStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Status (Active/Completed/On Hold) *" />
+            android:minHeight="48dp" />
 
         <EditText
             android:id="@+id/etDescription"
