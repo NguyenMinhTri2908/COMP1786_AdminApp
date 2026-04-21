@@ -38,6 +38,7 @@ public class ExpenseActivity extends AppCompatActivity {
     private int currentExpenseId = -1; // -1: Thêm mới, khác -1: Chế độ Sửa
     private RecyclerView rvExpenses;
     private ExpenseAdapter adapter;
+    private TextView tvTotalExpense;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +59,7 @@ public class ExpenseActivity extends AppCompatActivity {
         imgToggle = findViewById(R.id.imgToggle);
         layoutExpandableForm = findViewById(R.id.layoutExpandableForm);
         layoutHeaderToggle = findViewById(R.id.layoutHeaderToggle);
+        tvTotalExpense = findViewById(R.id.tvTotalExpense);
 
         // 2. Ánh xạ 12 trường dữ liệu chuẩn
         etExpenseCode = findViewById(R.id.etExpenseCode);
@@ -143,14 +145,30 @@ public class ExpenseActivity extends AppCompatActivity {
                 c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
     }
 
+    // GỘP CHUNG THÀNH 1 HÀM LOAD DUY NHẤT VÀ TÍNH TỔNG TIỀN
     private void loadExpensesList() {
         new Thread(() -> {
-            List<ExpenseEntity> list = db.appDao().getExpensesForProject(projectId); //
+            List<ExpenseEntity> list = db.appDao().getExpensesForProject(projectId);
             runOnUiThread(() -> {
-                adapter = new ExpenseAdapter(list, projectName); //
+                // Sử dụng rvExpenses đã khai báo ở trên
+                adapter = new ExpenseAdapter(list, projectName);
                 rvExpenses.setAdapter(adapter);
+
+                // Gọi hàm tính tổng tiền
+                calculateTotal(list);
             });
         }).start();
+    }
+
+    // HÀM TÍNH TỔNG TIỀN
+    private void calculateTotal(List<ExpenseEntity> list) {
+        double total = 0;
+        for (ExpenseEntity e : list) {
+            total += e.getAmount();
+        }
+        if (tvTotalExpense != null) {
+            tvTotalExpense.setText("Total Expense: $" + String.format("%.2f", total));
+        }
     }
 
     private void loadExpenseDataForEdit(int expenseId) {
@@ -213,7 +231,7 @@ public class ExpenseActivity extends AppCompatActivity {
                             "• Date: " + date + "\n" +
                             "• Type: " + type + "\n" +
                             "• Amount: " + amount + " " + currency + "\n" +
-                            "• Status: " + status +
+                            "• Status: " + status + "\n" +
                             "• Claimant: " + claimant)
                     .setPositiveButton("Confirm", (dialog, which) -> {
                         new Thread(() -> {
@@ -232,7 +250,7 @@ public class ExpenseActivity extends AppCompatActivity {
 
                             runOnUiThread(() -> {
                                 Toast.makeText(this, "Operation Successful!", Toast.LENGTH_SHORT).show();
-                                loadExpensesList(); // Làm mới danh sách
+                                loadExpensesList(); // Làm mới danh sách và tính lại tổng tiền
                                 collapseForm();     // Thu gọn form sau khi lưu
                                 clearForm();        // Xóa trắng form cho lần nhập sau
 
