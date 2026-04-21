@@ -6,7 +6,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 // Khai báo 2 bảng dữ liệu và version. exportSchema = false để tránh cảnh báo.
-@Database(entities = {ProjectEntity.class, ExpenseEntity.class}, version = 1, exportSchema = false)
+@Database(entities = {ProjectEntity.class, ExpenseEntity.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     // Kết nối với DAO

@@ -5,4 +5,29 @@
         <item>Completed</item>
         <item>On Hold</item>
     </string-array>
+
+    <string-array name="expense_types">
+        <item>Travel</item>
+        <item>Materials</item>
+        <item>Equipment</item>
+        <item>Services</item>
+        <item>Software/Licenses</item>
+        <item>Labour costs</item>
+        <item>Utilities</item>
+        <item>Miscellaneous</item>
+
+    </string-array>
+
+    <string-array name="payment_methods">
+        <item>Cash</item>
+        <item>Credit Card</item>
+        <item>Cheque</item>
+        <item>Bank Transfer</item>
+    </string-array>
+
+    <string-array name="payment_statuses">
+        <item>Paid</item>
+        <item>Unpaid</item>
+        <item>Pending</item>
+    </string-array>
 </resources>

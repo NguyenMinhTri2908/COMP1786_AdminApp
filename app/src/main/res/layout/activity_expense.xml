@@ -14,21 +14,34 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Add Expense"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/etExpenseCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Expense ID/Code *" />
 
         <EditText
             android:id="@+id/etExpenseDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Date (dd/mm/yyyy) *" />
+            android:hint="Date (dd/mm/yyyy) *"
+            android:focusable="false"
+            android:clickable="true" />
 
-        <EditText
-            android:id="@+id/etExpenseType"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Type of Expense *"
+            android:layout_marginTop="8dp" />
+        <Spinner
+            android:id="@+id/spExpenseType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Type (Travel, Food...) *" />
+            android:minHeight="48dp" />
 
         <EditText
             android:id="@+id/etExpenseAmount"
@@ -41,19 +54,32 @@
             android:id="@+id/etExpenseCurrency"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Currency (USD, VND...)" />
+            android:hint="Currency (e.g. VND, USD) *" />
 
         <EditText
-            android:id="@+id/etPaymentMethod"
+            android:id="@+id/etExpenseDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Payment Method (Cash, Card...)" />
+            android:hint="Description *"
+            android:lines="2"
+            android:gravity="top" />
 
         <EditText
-            android:id="@+id/etExpenseTime"
+            android:id="@+id/etExpenseLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Time (hh:mm)" />
+            android:hint="Location" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Payment Method"
+            android:layout_marginTop="8dp" />
+        <Spinner
+            android:id="@+id/spPaymentMethod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp" />
 
         <EditText
             android:id="@+id/etExpenseClaimant"
@@ -61,26 +87,23 @@
             android:layout_height="wrap_content"
             android:hint="Claimant Name" />
 
-        <EditText
-            android:id="@+id/etPaymentStatus"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Payment Status"
+            android:layout_marginTop="8dp" />
+        <Spinner
+            android:id="@+id/spPaymentStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Payment Status (Paid/Unpaid)" />
-
-        <EditText
-            android:id="@+id/etExpenseComment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Comments"
-            android:lines="3"
-            android:gravity="top" />
+            android:minHeight="48dp" />
 
         <Button
             android:id="@+id/btnSaveExpense"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Expense"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="24dp" />
 
     </LinearLayout>
 </ScrollView>
