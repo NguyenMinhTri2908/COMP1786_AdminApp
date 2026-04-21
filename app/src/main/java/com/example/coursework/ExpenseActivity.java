@@ -2,9 +2,12 @@ package com.example.coursework;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,13 +26,15 @@ public class ExpenseActivity extends AppCompatActivity {
 
     private int projectId = -1;
     private String projectName = "";
-    private TextView tvProjectName;
+    private TextView tvProjectName, tvFormTitle;
     private EditText etExpenseCode, etDate, etAmount, etCurrency, etDescription, etLocation, etClaimant;
     private Spinner spType, spPaymentMethod, spPaymentStatus;
     private Button btnSaveExpense;
     private AppDatabase db;
 
-    // --- BỔ SUNG BIẾN CHO CHỨC NĂNG XEM VÀ SỬA ---
+    // Biến cho chức năng Thu gọn/Mở rộng Form và Danh sách
+    private LinearLayout layoutExpandableForm, layoutHeaderToggle;
+    private ImageView imgToggle;
     private int currentExpenseId = -1; // -1: Thêm mới, khác -1: Chế độ Sửa
     private RecyclerView rvExpenses;
     private ExpenseAdapter adapter;
@@ -41,13 +46,20 @@ public class ExpenseActivity extends AppCompatActivity {
 
         db = AppDatabase.getInstance(this);
 
+        // Nhận thông tin Project từ Intent
         if (getIntent().hasExtra("PROJECT_ID")) {
             projectId = getIntent().getIntExtra("PROJECT_ID", -1);
             projectName = getIntent().getStringExtra("PROJECT_NAME");
         }
 
-        // 1. Ánh xạ toàn bộ trường chuẩn
+        // 1. Ánh xạ các thành phần điều khiển đóng/mở thẻ
         tvProjectName = findViewById(R.id.tvProjectName);
+        tvFormTitle = findViewById(R.id.tvFormTitle);
+        imgToggle = findViewById(R.id.imgToggle);
+        layoutExpandableForm = findViewById(R.id.layoutExpandableForm);
+        layoutHeaderToggle = findViewById(R.id.layoutHeaderToggle);
+
+        // 2. Ánh xạ 12 trường dữ liệu chuẩn
         etExpenseCode = findViewById(R.id.etExpenseCode);
         etDate = findViewById(R.id.etExpenseDate);
         spType = findViewById(R.id.spExpenseType);
@@ -60,29 +72,56 @@ public class ExpenseActivity extends AppCompatActivity {
         spPaymentStatus = findViewById(R.id.spPaymentStatus);
         btnSaveExpense = findViewById(R.id.btnSaveExpense);
 
-        // Ánh xạ RecyclerView (Chức năng Xem)
+        // 3. Thiết lập RecyclerView hiển thị danh sách
         rvExpenses = findViewById(R.id.rvExpenses);
         rvExpenses.setLayoutManager(new LinearLayoutManager(this));
 
         tvProjectName.setText("Project: " + projectName);
 
-        // 2. Thiết lập Spinners
+        // 4. Thiết lập Spinners
         setupSpinners();
+
+        // 5. Logic Đóng/Mở Form khi nhấn vào tiêu đề thẻ
+        layoutHeaderToggle.setOnClickListener(v -> toggleForm());
 
         etDate.setFocusable(false);
         etDate.setOnClickListener(v -> showDatePicker());
 
-        // --- KIỂM TRA CHẾ ĐỘ SỬA ---
+        // 6. KIỂM TRA CHẾ ĐỘ SỬA: Nếu nhấn từ nút Edit ở Adapter
         if (getIntent().hasExtra("EXPENSE_ID")) {
             currentExpenseId = getIntent().getIntExtra("EXPENSE_ID", -1);
-            loadExpenseDataForEdit(currentExpenseId);
+            expandForm(); // Mở thẻ nhập liệu ra để sửa
+            tvFormTitle.setText("Editing Expense");
             btnSaveExpense.setText("Update Expense");
+            loadExpenseDataForEdit(currentExpenseId);
         }
 
-        // --- LOAD DANH SÁCH CHI PHÍ (Xem) ---
-        loadExpensesList();
-
         btnSaveExpense.setOnClickListener(v -> handleSaveOrUpdate());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // QUAN TRỌNG: Load lại danh sách tại đây để giải quyết lỗi "hiện thông tin cũ"
+        loadExpensesList();
+    }
+
+    private void toggleForm() {
+        if (layoutExpandableForm.getVisibility() == View.VISIBLE) {
+            collapseForm();
+        } else {
+            expandForm();
+        }
+    }
+
+    private void expandForm() {
+        layoutExpandableForm.setVisibility(View.VISIBLE);
+        imgToggle.setImageResource(android.R.drawable.arrow_up_float);
+    }
+
+    private void collapseForm() {
+        layoutExpandableForm.setVisibility(View.GONE);
+        imgToggle.setImageResource(android.R.drawable.arrow_down_float);
     }
 
     private void setupSpinners() {
@@ -104,21 +143,18 @@ public class ExpenseActivity extends AppCompatActivity {
                 c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
     }
 
-    // --- HÀM LOAD DANH SÁCH CHI PHÍ ---
     private void loadExpensesList() {
         new Thread(() -> {
-            List<ExpenseEntity> list = db.appDao().getExpensesForProject(projectId);
+            List<ExpenseEntity> list = db.appDao().getExpensesForProject(projectId); //
             runOnUiThread(() -> {
-                adapter = new ExpenseAdapter(list, projectName);
+                adapter = new ExpenseAdapter(list, projectName); //
                 rvExpenses.setAdapter(adapter);
             });
         }).start();
     }
 
-    // --- HÀM ĐIỀN DỮ LIỆU CŨ ĐỂ SỬA ---
     private void loadExpenseDataForEdit(int expenseId) {
         new Thread(() -> {
-            // Tìm chi phí trong danh sách của project này
             List<ExpenseEntity> list = db.appDao().getExpensesForProject(projectId);
             for (ExpenseEntity e : list) {
                 if (e.getExpenseId() == expenseId) {
@@ -142,22 +178,23 @@ public class ExpenseActivity extends AppCompatActivity {
 
     private void setSpinnerSelection(Spinner spinner, String value, int arrayRes) {
         ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) spinner.getAdapter();
-        if (adapter != null) {
+        if (adapter != null && value != null) {
             int pos = adapter.getPosition(value);
             if (pos >= 0) spinner.setSelection(pos);
         }
     }
 
-    // --- HÀM XỬ LÝ LƯU HOẶC CẬP NHẬT ---
     private void handleSaveOrUpdate() {
         String code = etExpenseCode.getText().toString().trim();
         String date = etDate.getText().toString().trim();
         String amountStr = etAmount.getText().toString().trim();
         String currency = etCurrency.getText().toString().trim();
+        String claimant = etClaimant.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
 
-        if (code.isEmpty() || date.isEmpty() || amountStr.isEmpty() || currency.isEmpty() || description.isEmpty()) {
-            Toast.makeText(this, "Please fill all required fields (*)", Toast.LENGTH_SHORT).show();
+        // Validation
+        if (code.isEmpty() || date.isEmpty() || amountStr.isEmpty() || currency.isEmpty() || claimant.isEmpty()) {
+            Toast.makeText(this, "Please fill required fields (*)", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -167,35 +204,43 @@ public class ExpenseActivity extends AppCompatActivity {
             String method = spPaymentMethod.getSelectedItem().toString();
             String status = spPaymentStatus.getSelectedItem().toString();
             String location = etLocation.getText().toString().trim();
-            String claimant = etClaimant.getText().toString().trim();
+
 
             new AlertDialog.Builder(this)
                     .setTitle("Review Details")
-                    .setMessage("Expense: " + code + "\nAmount: " + amount + " " + currency)
+                    .setMessage("Please review before saving:\n\n" +
+                            "• ID: " + code + "\n" +
+                            "• Date: " + date + "\n" +
+                            "• Type: " + type + "\n" +
+                            "• Amount: " + amount + " " + currency + "\n" +
+                            "• Status: " + status +
+                            "• Claimant: " + claimant)
                     .setPositiveButton("Confirm", (dialog, which) -> {
                         new Thread(() -> {
+                            // Tạo Entity dựa trên 11 tham số chuẩn
                             ExpenseEntity expense = new ExpenseEntity(
                                     projectId, code, date, type, amount, currency,
                                     method, description, location, claimant, status
                             );
 
                             if (currentExpenseId != -1) {
-                                // CHẾ ĐỘ SỬA
                                 expense.setExpenseId(currentExpenseId);
-                                db.appDao().updateExpense(expense);
+                                db.appDao().updateExpense(expense); // Cập nhật
                             } else {
-                                // CHẾ ĐỘ THÊM MỚI
-                                db.appDao().insertExpense(expense);
+                                db.appDao().insertExpense(expense); // Thêm mới
                             }
 
                             runOnUiThread(() -> {
-                                Toast.makeText(this, "Success!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "Operation Successful!", Toast.LENGTH_SHORT).show();
+                                loadExpensesList(); // Làm mới danh sách
+                                collapseForm();     // Thu gọn form sau khi lưu
+                                clearForm();        // Xóa trắng form cho lần nhập sau
+
                                 if (currentExpenseId != -1) {
-                                    finish(); // Sửa xong thì quay về
-                                } else {
-                                    // Thêm xong thì dọn form và load lại danh sách bên dưới
-                                    clearForm();
-                                    loadExpensesList();
+                                    // Reset trạng thái sau khi Update
+                                    currentExpenseId = -1;
+                                    tvFormTitle.setText("Add New Expense");
+                                    btnSaveExpense.setText("Save Expense");
                                 }
                             });
                         }).start();
@@ -214,6 +259,6 @@ public class ExpenseActivity extends AppCompatActivity {
         etDescription.setText("");
         etLocation.setText("");
         etClaimant.setText("");
-        // Giữ lại date và currency cho tiện nhập tiếp
+        // Không xóa Date và Currency để thuận tiện nhập nhiều khoản cùng lúc
     }
 }
