@@ -5,20 +5,36 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/etSearch"
+    <LinearLayout
+        android:id="@+id/layoutSearchHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tìm kiếm dự án..."
-        android:drawableStart="@android:drawable/ic_menu_search"
-        android:padding="12dp"
-        android:background="@android:drawable/editbox_background" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:hint="Search project..."
+            android:drawableStart="@android:drawable/ic_menu_search"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background" />
+
+        <Button
+            android:id="@+id/btnOpenAdvancedSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filter"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/layoutButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/etSearch"
+        android:layout_below="@id/layoutSearchHeader"
         android:layout_marginTop="8dp"
         android:orientation="horizontal">
 

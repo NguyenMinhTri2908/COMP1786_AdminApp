@@ -43,40 +43,48 @@ public class HomeActivity extends AppCompatActivity {
 
         db = AppDatabase.getInstance(this);
 
+        // Ánh xạ View (Phải đúng ID đã đặt ở XML)
         etSearch = findViewById(R.id.etSearch);
-        fabCreateNew = findViewById(R.id.fabCreateNew);
         btnSyncCloud = findViewById(R.id.btnSyncCloud);
-        btnResetDB = findViewById(R.id.btnResetDB); // Ánh xạ nút Reset
+        btnResetDB = findViewById(R.id.btnResetDB);
         recyclerView = findViewById(R.id.recyclerViewHome);
+        fabCreateNew = findViewById(R.id.fabCreateNew);
+
+        // NÚT MỚI: Kích hoạt Advanced Search
+        Button btnOpenAdvancedSearch = findViewById(R.id.btnOpenAdvancedSearch);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        // Khôi phục chức năng Search cơ bản
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Khi gõ vào ô search, gọi hàm lọc cũ của bạn
+                filterProjects(s.toString());
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // Gán sự kiện cho nút Filter (Nâng cao)
+        btnOpenAdvancedSearch.setOnClickListener(v -> showAdvancedSearchDialog());
+
+        // Các nút khác giữ nguyên
         fabCreateNew.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, MainActivity.class);
             startActivity(intent);
         });
 
         btnSyncCloud.setOnClickListener(v -> syncToCloud());
-
-        // XỬ LÝ NÚT RESET DATABASE
         btnResetDB.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
-                    .setTitle("Xác nhận xóa sạch")
-                    .setMessage("Bạn có chắc muốn xóa TOÀN BỘ dữ liệu? Hành động này sẽ xóa sạch cả dự án và chi phí.")
-                    .setPositiveButton("Xóa hết", (dialog, which) -> executeResetDatabase())
-                    .setNegativeButton("Hủy", null)
+                    .setTitle("Confirm")
+                    .setMessage("Reset all data?")
+                    .setPositiveButton("Yes", (dialog, which) -> executeResetDatabase())
+                    .setNegativeButton("No", null)
                     .show();
-        });
-
-        etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterProjects(s.toString());
-            }
-            @Override
-            public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -157,4 +165,100 @@ public class HomeActivity extends AppCompatActivity {
         }
         return false;
     }
+    private void showAdvancedSearchDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Advanced Search");
+
+        // Tạo Layout chứa các thành phần
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+
+        // 1. Nhập Owner
+        final EditText inputOwner = new EditText(this);
+        inputOwner.setHint("Owner Name");
+        layout.addView(inputOwner);
+
+        // 2. Chọn Ngày (Dùng DatePicker)
+        final EditText inputDate = new EditText(this);
+        inputDate.setHint("Select Date (Click to choose)");
+        inputDate.setFocusable(false); // Không cho gõ, chỉ cho bấm
+        inputDate.setOnClickListener(v -> showDatePicker(inputDate));
+        layout.addView(inputDate);
+
+        // 3. Tiêu đề nhỏ cho Spinner
+        android.widget.TextView tvLabel = new android.widget.TextView(this);
+        tvLabel.setText("Select Status:");
+        tvLabel.setPadding(10, 20, 0, 5);
+        layout.addView(tvLabel);
+
+        // 4. Spinner chọn Status (Dropdown)
+        final android.widget.Spinner spStatus = new android.widget.Spinner(this);
+        // Sử dụng lại project_status_array từ strings.xml của bạn
+        android.widget.ArrayAdapter<CharSequence> statusAdapter = android.widget.ArrayAdapter.createFromResource(this,
+                R.array.project_status_array, android.R.layout.simple_spinner_item);
+        statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);        spStatus.setAdapter(statusAdapter);
+        layout.addView(spStatus);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Search", (dialog, which) -> {
+            String owner = inputOwner.getText().toString();
+            String date = inputDate.getText().toString();
+            // Lấy giá trị từ Spinner
+            String status = spStatus.getSelectedItem().toString();
+
+            // Gọi hàm lọc với 3 tiêu chí
+            advancedFilter(etSearch.getText().toString(), status, date, owner);
+        });
+
+        builder.setNegativeButton("Clear Filter", (dialog, which) -> loadProjects());
+
+        builder.show();
+    }
+    private void advancedFilter(String keyword, String status, String date, String owner) {
+        if (allProjects == null || adapter == null) return;
+
+        List<ProjectEntity> filteredList = new ArrayList<>();
+        String query = keyword.toLowerCase().trim();
+
+        for (ProjectEntity project : allProjects) {
+            // 1. Kiểm tra Name hoặc Description
+            boolean matchKeyword = project.getName().toLowerCase().contains(query) ||
+                    (project.getDescription() != null && project.getDescription().toLowerCase().contains(query));
+
+            // 2. Kiểm tra Status (nếu có chọn)
+            boolean matchStatus = (status == null || status.isEmpty() ||
+                    (project.getStatus() != null && project.getStatus().equalsIgnoreCase(status)));
+
+            // 3. Kiểm tra Date (nếu có chọn)
+            boolean matchDate = (date == null || date.isEmpty() ||
+                    (project.getStartDate() != null && project.getStartDate().contains(date)));
+
+            // 4. Kiểm tra Owner
+            boolean matchOwner = (owner == null || owner.isEmpty() ||
+                    (project.getOwner() != null && project.getOwner().toLowerCase().contains(owner.toLowerCase())));
+
+            // Nếu tất cả thỏa mãn thì thêm vào danh sách
+            if (matchKeyword && matchStatus && matchDate && matchOwner) {
+                filteredList.add(project);
+            }
+        }
+        adapter.updateList(filteredList);
+    }
+    private void showDatePicker(EditText editText) {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        int year = calendar.get(java.util.Calendar.YEAR);
+        int month = calendar.get(java.util.Calendar.MONTH);
+        int day = calendar.get(java.util.Calendar.DAY_OF_MONTH);
+
+        android.app.DatePickerDialog datePickerDialog = new android.app.DatePickerDialog(this,
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    // Định dạng ngày thành DD/MM/YYYY (khớp với định dạng bạn lưu trong DB)
+                    String date = String.format("%02d/%02d/%d", selectedDay, selectedMonth + 1, selectedYear);
+                    editText.setText(date);
+                }, year, month, day);
+        datePickerDialog.show();
+    }
+
 }
