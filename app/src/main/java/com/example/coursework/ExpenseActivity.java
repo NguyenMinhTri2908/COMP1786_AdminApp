@@ -47,7 +47,7 @@ public class ExpenseActivity extends AppCompatActivity {
 
         db = AppDatabase.getInstance(this);
 
-        // Nhận thông tin Project từ Intent
+        // Nhận thông tin Project
         if (getIntent().hasExtra("PROJECT_ID")) {
             projectId = getIntent().getIntExtra("PROJECT_ID", -1);
             projectName = getIntent().getStringExtra("PROJECT_NAME");
@@ -89,7 +89,7 @@ public class ExpenseActivity extends AppCompatActivity {
         etDate.setFocusable(false);
         etDate.setOnClickListener(v -> showDatePicker());
 
-        // 6. KIỂM TRA CHẾ ĐỘ SỬA: Nếu nhấn từ nút Edit ở Adapter
+
         if (getIntent().hasExtra("EXPENSE_ID")) {
             currentExpenseId = getIntent().getIntExtra("EXPENSE_ID", -1);
             expandForm(); // Mở thẻ nhập liệu ra để sửa
@@ -104,7 +104,6 @@ public class ExpenseActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // QUAN TRỌNG: Load lại danh sách tại đây để giải quyết lỗi "hiện thông tin cũ"
         loadExpensesList();
     }
 
@@ -145,22 +144,18 @@ public class ExpenseActivity extends AppCompatActivity {
                 c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
     }
 
-    // GỘP CHUNG THÀNH 1 HÀM LOAD DUY NHẤT VÀ TÍNH TỔNG TIỀN
     private void loadExpensesList() {
         new Thread(() -> {
             List<ExpenseEntity> list = db.appDao().getExpensesForProject(projectId);
             runOnUiThread(() -> {
-                // Sử dụng rvExpenses đã khai báo ở trên
                 adapter = new ExpenseAdapter(list, projectName);
                 rvExpenses.setAdapter(adapter);
 
-                // Gọi hàm tính tổng tiền
                 calculateTotal(list);
             });
         }).start();
     }
 
-    // HÀM TÍNH TỔNG TIỀN
     private void calculateTotal(List<ExpenseEntity> list) {
         double total = 0;
         for (ExpenseEntity e : list) {
@@ -277,6 +272,5 @@ public class ExpenseActivity extends AppCompatActivity {
         etDescription.setText("");
         etLocation.setText("");
         etClaimant.setText("");
-        // Không xóa Date và Currency để thuận tiện nhập nhiều khoản cùng lúc
     }
 }

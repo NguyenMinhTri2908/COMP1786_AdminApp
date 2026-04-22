@@ -19,8 +19,8 @@ public class ProjectEntity {
     private double budget;
     private String owner;
     private String status;
-    private String specialRequirements; // Trường thứ 11
-    private String clientInfo;          // Trường thứ 12
+    private String specialRequirements;
+    private String clientInfo;
 
     // Constructor chuẩn 12 tham số
     public ProjectEntity(String projectIdCode, String name, String destination, String startDate, String endDate, boolean requiresRiskAssessment, String description, double budget, String owner, String status, String specialRequirements, String clientInfo) {

@@ -30,7 +30,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private EditText etSearch;
     private FloatingActionButton fabCreateNew;
-    private Button btnSyncCloud, btnResetDB; // Thêm nút Reset
+    private Button btnSyncCloud, btnResetDB;
     private RecyclerView recyclerView;
 
     private AppDatabase db;
@@ -44,35 +44,35 @@ public class HomeActivity extends AppCompatActivity {
 
         db = AppDatabase.getInstance(this);
 
-        // Ánh xạ View (Phải đúng ID đã đặt ở XML)
+        // Ánh xạ View
         etSearch = findViewById(R.id.etSearch);
         btnSyncCloud = findViewById(R.id.btnSyncCloud);
         btnResetDB = findViewById(R.id.btnResetDB);
         recyclerView = findViewById(R.id.recyclerViewHome);
         fabCreateNew = findViewById(R.id.fabCreateNew);
 
-        // NÚT MỚI: Kích hoạt Advanced Search
+        //  Advanced Search
         Button btnOpenAdvancedSearch = findViewById(R.id.btnOpenAdvancedSearch);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Khôi phục chức năng Search cơ bản
+
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Khi gõ vào ô search, gọi hàm lọc cũ của bạn
+                // gọi hàm lọc
                 filterProjects(s.toString());
             }
             @Override
             public void afterTextChanged(Editable s) {}
         });
 
-        // Gán sự kiện cho nút Filter (Nâng cao)
+
         btnOpenAdvancedSearch.setOnClickListener(v -> showAdvancedSearchDialog());
 
-        // Các nút khác giữ nguyên
+
         fabCreateNew.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, MainActivity.class);
             startActivity(intent);
@@ -136,12 +136,12 @@ public class HomeActivity extends AppCompatActivity {
         DatabaseReference dbRef = FirebaseDatabase.getInstance("https://courseworkcloud-af10d-default-rtdb.firebaseio.com/").getReference();
 
         new Thread(() -> {
-            // Lấy dữ liệu từ SQLite
+
             List<ProjectEntity> projects = db.appDao().getAllProjects();
             List<ExpenseEntity> expenses = db.appDao().getAllExpenses(); // Lệnh mới thêm ở Bước 1
 
             // Đẩy lên Firebase vào 2 mục riêng biệt
-            // Cách làm này tương tự như cách bạn đẩy Project, chỉ là thêm 1 dòng cho Expense
+
             dbRef.child("projects").setValue(projects);
             dbRef.child("expenses").setValue(expenses).addOnCompleteListener(task -> {
                 runOnUiThread(() -> {
@@ -156,7 +156,7 @@ public class HomeActivity extends AppCompatActivity {
         }).start();
     }
 
-    // HÀM THỰC THI RESET DATABASE
+    //  RESET DATABASE
     private void executeResetDatabase() {
         new Thread(() -> {
             // 1. Xóa sạch SQLite
@@ -166,9 +166,9 @@ public class HomeActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 if (adapter != null) adapter.updateList(new ArrayList<>());
 
-                // 2. Xóa sạch cả Project và Expense trên Cloud để đồng bộ
+                // 2. Xóa  Project và Expense trên Cloud
                 DatabaseReference dbRef = FirebaseDatabase.getInstance("https://courseworkcloud-af10d-default-rtdb.firebaseio.com/").getReference();
-                dbRef.removeValue(); // Xóa sạch toàn bộ Node gốc
+                dbRef.removeValue(); // Xóa sạch  Node
 
                 Toast.makeText(HomeActivity.this, "Device and Cloud cleared successfully!", Toast.LENGTH_LONG).show();
             });
@@ -197,14 +197,14 @@ public class HomeActivity extends AppCompatActivity {
         inputOwner.setHint("Owner Name");
         layout.addView(inputOwner);
 
-        // 2. Chọn Ngày (Dùng DatePicker)
+        // 2. DatePicker
         final EditText inputDate = new EditText(this);
         inputDate.setHint("Select Date (Click to choose)");
         inputDate.setFocusable(false); // Không cho gõ, chỉ cho bấm
         inputDate.setOnClickListener(v -> showDatePicker(inputDate));
         layout.addView(inputDate);
 
-        // 3. Tiêu đề nhỏ cho Spinner
+
         android.widget.TextView tvLabel = new android.widget.TextView(this);
         tvLabel.setText("Select Status:");
         tvLabel.setPadding(10, 20, 0, 5);
@@ -212,7 +212,6 @@ public class HomeActivity extends AppCompatActivity {
 
         // 4. Spinner chọn Status (Dropdown)
         final android.widget.Spinner spStatus = new android.widget.Spinner(this);
-        // Sử dụng lại project_status_array từ strings.xml của bạn
         android.widget.ArrayAdapter<CharSequence> statusAdapter = android.widget.ArrayAdapter.createFromResource(this,
                 R.array.project_status_array, android.R.layout.simple_spinner_item);
         statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);        spStatus.setAdapter(statusAdapter);
@@ -257,7 +256,6 @@ public class HomeActivity extends AppCompatActivity {
             boolean matchOwner = (owner == null || owner.isEmpty() ||
                     (project.getOwner() != null && project.getOwner().toLowerCase().contains(owner.toLowerCase())));
 
-            // Nếu tất cả thỏa mãn thì thêm vào danh sách
             if (matchKeyword && matchStatus && matchDate && matchOwner) {
                 filteredList.add(project);
             }

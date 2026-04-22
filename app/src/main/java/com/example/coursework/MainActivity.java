@@ -55,14 +55,14 @@ public class MainActivity extends AppCompatActivity {
         btnSaveProject = findViewById(R.id.btnSaveProject);
         btnViewProjects = findViewById(R.id.btnViewProjects);
 
-        // 2. Thiết lập chọn ngày (DatePicker) thay vì nhập tay
+        // 2. Thiết lập chọn ngày
         etStartDate.setFocusable(false); // Không cho hiện bàn phím
         etStartDate.setOnClickListener(v -> showDatePickerDialog(etStartDate));
 
         etEndDate.setFocusable(false);   // Không cho hiện bàn phím
         etEndDate.setOnClickListener(v -> showDatePickerDialog(etEndDate));
 
-        // 3. Load dữ liệu nếu là chế độ Sửa (Edit)
+        // 3. Load dữ liệu Edit
         if (getIntent().hasExtra("PROJECT_ID")) {
             currentProjectId = getIntent().getIntExtra("PROJECT_ID", -1);
             etProjectIdCode.setText(getIntent().getStringExtra("PROJECT_CODE"));
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         btnViewProjects.setOnClickListener(v -> finish());
     }
 
-    // Hàm hiển thị cuốn lịch để chọn ngày
+    // Hàm hiển thị cuốn lịch
     private void showDatePickerDialog(final EditText dateField) {
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         String special = etSpecial.getText().toString().trim();
         String client = etClient.getText().toString().trim();
 
-        // --- BẮT ĐẦU KIỂM TRA TỪNG TRƯỜNG BẮT BUỘC (VALIDATION - PART A) ---
+        // VALIDATION -
 
         if (idCode.isEmpty()) {
             etProjectIdCode.setError("Project ID/Code is required!");
@@ -167,8 +167,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             double budget = Double.parseDouble(budgetStr);
 
-            // HIỂN THỊ XÁC NHẬN (CONFIRMATION - PART A)
-            // Hiển thị lại toàn bộ thông tin để người dùng Review trước khi lưu
+            // CONFIRMATION - PART A
+            // Hiển thị  thông tin để  Review trước  lưu
             StringBuilder confirmMessage = new StringBuilder();
             confirmMessage.append("ID/Code: ").append(idCode).append("\n");
             confirmMessage.append("Name: ").append(name).append("\n");
@@ -185,12 +185,10 @@ public class MainActivity extends AppCompatActivity {
                     .setTitle("Review & Confirm Details")
                     .setMessage(confirmMessage.toString())
                     .setPositiveButton("Confirm & Save", (dialog, which) -> {
-                        // Nếu đúng hết thì tiến hành lưu
                         saveToDatabase(idCode, name, dest, start, end, switchRisk.isChecked(),
                                 desc, budget, owner, status, special, client);
                     })
                     .setNegativeButton("Go Back to Edit", (dialog, which) -> {
-                        // Đóng bảng để người dùng sửa lại thông tin (Đúng yêu cầu Part a)
                         dialog.dismiss();
                     })
                     .show();

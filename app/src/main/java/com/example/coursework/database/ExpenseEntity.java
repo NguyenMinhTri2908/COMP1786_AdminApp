@@ -15,17 +15,16 @@ public class ExpenseEntity {
     private int expenseId;
     private int projectId;
     private String expenseCode;
-    private String date;           // Mới thêm
+    private String date;
     private String type;
     private double amount;
     private String currency;
-    private String paymentMethod;  // Mới thêm
+    private String paymentMethod;
     private String description;
-    private String location;    // Thêm mới
-    private String claimant;       // Mới thêm
-    private String paymentStatus;  // Mới thêm
+    private String location;
+    private String claimant;
+    private String paymentStatus;
 
-    // Constructor đã được cập nhật
     public ExpenseEntity(int projectId,String expenseCode, String date, String type, double amount, String currency, String paymentMethod, String description, String location, String claimant, String paymentStatus) {
         this.projectId = projectId;
         this.expenseCode = expenseCode;

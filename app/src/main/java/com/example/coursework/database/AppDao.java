@@ -10,7 +10,7 @@ import java.util.List;
 @Dao
 public interface AppDao {
 
-    // ================= LỆNH CHO PROJECT =================
+    // PROJECT
 
     @Insert
     long insertProject(ProjectEntity project);
@@ -25,7 +25,7 @@ public interface AppDao {
     List<ProjectEntity> getAllProjects();
 
 
-    // ================= LỆNH CHO EXPENSE =================
+    // EXPENSE
 
     @Insert
     void insertExpense(ExpenseEntity expense);
